@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+/build
+
+# testing and QA output
+/coverage
+/qa/
+/test-results/
+/playwright-report/
+
+# Remotion (video workspace)
+/video/node_modules/
+/video/out/
+/video/.remotion/
+/video/build/
+*.raw.mp4
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+npm-debug.log*
+
+# env files
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
