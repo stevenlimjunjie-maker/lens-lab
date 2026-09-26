@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { SimCanvas } from "@/components/sim/SimCanvas";
+import { CompactStatus, StickyPreview } from "@/components/sim/StickyPreview";
 import { RangeSlider, Segmented, Toggle } from "@/components/ui/Controls";
 import { Callout } from "@/components/ui/Section";
 import { METERING, WB_PRESETS } from "@/lib/content";
@@ -23,7 +24,12 @@ export function WhiteBalanceDemo() {
   const cast = Math.abs(diff) < 350 ? "neutral" : diff > 0 ? "too warm (orange)" : "too cool (blue)";
   return (
     <div className="grid gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-6">
-      <SimCanvas scene={scene} params={params} label={`${SCENES[scene].alt}, white balance set to ${k}K, colours look ${cast}.`} />
+      <StickyPreview
+        bleed="section"
+        footer={<CompactStatus verdicts={[{ tone: cast === "neutral" ? "good" : "caution", text: `${k}K: ${cast}` }]} />}
+      >
+        <SimCanvas scene={scene} params={params} label={`${SCENES[scene].alt}, white balance set to ${k}K, colours look ${cast}.`} />
+      </StickyPreview>
       <div className="grid content-start gap-3">
         <Segmented
           label="Light in the scene"
@@ -92,11 +98,18 @@ export function FocusDemo() {
   const params = useMemo(() => ({ stops: 0, noise: 0.004, motion: 0, shake: 0, dof: 0.014, focus, peaking }), [focus, peaking]);
   return (
     <div className="grid gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-6">
-      <SimCanvas
-        scene="street"
-        params={params}
-        label={`Street scene with manual focus ${onTarget ? `on the ${nearest.label}` : "between subjects"}. ${peaking ? "Focus peaking outlines sharp edges in green." : ""}`}
-      />
+      <StickyPreview
+        bleed="section"
+        footer={
+          <CompactStatus verdicts={[{ tone: onTarget ? "good" : "caution", text: onTarget ? `Sharp: the ${nearest.label}` : "Nothing is quite sharp" }]} />
+        }
+      >
+        <SimCanvas
+          scene="street"
+          params={params}
+          label={`Street scene with manual focus ${onTarget ? `on the ${nearest.label}` : "between subjects"}. ${peaking ? "Focus peaking outlines sharp edges in green." : ""}`}
+        />
+      </StickyPreview>
       <div className="grid content-start gap-3">
         <div className="rounded-lg border border-rule bg-white p-3">
           <RangeSlider
@@ -192,6 +205,7 @@ export function MeteringDemo() {
   const tone = Math.abs(stops) < 0.35 ? "good" : Math.abs(stops) < 1 ? "caution" : "bad";
   return (
     <div className="grid gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-6">
+      <StickyPreview bleed="section" footer={<CompactStatus verdicts={[{ tone, text: `${info.name}: face ${formatEv(stops)} stops` }]} />}>
       <SimCanvas
         scene="portrait"
         params={params}
@@ -224,6 +238,7 @@ export function MeteringDemo() {
           )}
         </svg>
       </SimCanvas>
+      </StickyPreview>
       <div className="grid content-start gap-3">
         <Segmented label="Metering mode" options={METERING.map((m) => ({ value: m.id, label: m.name }))} value={mode} onChange={setMode} />
         <div className="rounded-lg border border-rule bg-white p-3">
@@ -273,8 +288,9 @@ export function RawDemo() {
           setSh(0);
         }}
       />
-      <div className="grid grid-cols-2 gap-2">
-        <figure>
+      <StickyPreview bleed="section">
+        <div className="grid grid-cols-2 gap-2">
+          <figure>
           <SimCanvas scene={scene} params={jpeg} label={`JPEG version after editing. ${situation === "bright" ? "Clipped sky stays flat" : "Lifted shadows show banding and noise"}.`} maxWidth={900} />
           <figcaption className="mt-1 text-center text-[14px] font-semibold">JPEG / HEIF</figcaption>
         </figure>
@@ -283,6 +299,7 @@ export function RawDemo() {
           <figcaption className="mt-1 text-center text-[14px] font-semibold">RAW</figcaption>
         </figure>
       </div>
+      </StickyPreview>
       <div className="grid gap-1 rounded-lg border border-rule bg-white p-3 md:grid-cols-2 md:gap-6">
         <RangeSlider
           label="Recover highlights"

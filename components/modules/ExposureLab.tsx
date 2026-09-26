@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { SimCanvas, type SimParams } from "@/components/sim/SimCanvas";
 import { Histogram } from "@/components/sim/Histogram";
 import { Verdicts } from "@/components/sim/Verdicts";
+import { CompactStatus, StickyPreview } from "@/components/sim/StickyPreview";
 import { Segmented, StepSlider, Toggle } from "@/components/ui/Controls";
 import { SCENES, type SceneId } from "@/lib/scenes";
 import {
@@ -122,7 +123,7 @@ export function ExposureLab({
 
   return (
     <div className="grid gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-6">
-      <div className="md:sticky md:top-4 md:self-start">
+      <StickyPreview footer={<CompactStatus verdicts={verdicts} stats={stats} />}>
         {heading}
         <SimCanvas scene={s.scene} params={params} onStats={setStats} label={label}>
           <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-between p-2 text-[12px] font-semibold text-white">
@@ -132,13 +133,16 @@ export function ExposureLab({
             <span className="rounded bg-black/60 px-1.5 py-0.5">{s.mode === "auto" ? "Auto" : "Pro"}</span>
           </div>
         </SimCanvas>
-        <div className="mt-2 grid gap-2">
+        <div className="mt-2 hidden gap-2 md:grid">
           <Histogram stats={stats} />
           <Verdicts items={verdicts} />
         </div>
-      </div>
+      </StickyPreview>
 
       <div className="grid content-start gap-3">
+        <div className="md:hidden">
+          <Verdicts items={verdicts} />
+        </div>
         {!sceneLocked && (
           <Segmented label="Scene" options={SCENE_OPTIONS} value={s.scene} onChange={(v) => set({ scene: v })} />
         )}

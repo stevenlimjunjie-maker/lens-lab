@@ -1,7 +1,7 @@
 import type { Stats } from "@/lib/exposure";
 
 /** Luminance histogram drawn as an SVG area. Clipped ends are flagged. */
-export function Histogram({ stats }: { stats: Stats | null }) {
+export function Histogram({ stats, compact }: { stats: Stats | null; compact?: boolean }) {
   const bins = stats?.hist ?? new Array(64).fill(0);
   const max = Math.max(0.02, ...bins.slice(1, 63));
   const W = 256;
@@ -17,6 +17,15 @@ export function Histogram({ stats }: { stats: Stats | null }) {
   const summary = stats
     ? `Histogram: average brightness ${Math.round(stats.mean * 100)} percent, ${Math.round(stats.clipped * 100)} percent of pixels clipped to white, ${Math.round(stats.crushed * 100)} percent near black.`
     : "Histogram loading";
+  if (compact) {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className="block h-7 w-full rounded border border-rule bg-white" preserveAspectRatio="none">
+        <path d={path} fill="#1d4ed8" fillOpacity="0.3" stroke="#1d4ed8" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+        {crushed && <rect x="0" y="0" width="8" height={H} fill="#f59e0b" />}
+        {clipped && <rect x={W - 8} y="0" width="8" height={H} fill="#b91c1c" />}
+      </svg>
+    );
+  }
   return (
     <figure className="rounded-md border border-rule bg-white p-2">
       <svg viewBox={`0 0 ${W} ${H}`} className="block h-16 w-full" preserveAspectRatio="none" role="img" aria-label={summary}>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { SimCanvas } from "@/components/sim/SimCanvas";
+import { CompactStatus, StickyPreview } from "@/components/sim/StickyPreview";
 import { RangeSlider, Segmented, Toggle } from "@/components/ui/Controls";
 import { Callout } from "@/components/ui/Section";
 import { LENSES, type LensId } from "@/lib/content";
@@ -96,7 +97,7 @@ export function LensLab() {
 
   return (
     <div className="grid gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-6">
-      <div className="md:sticky md:top-4 md:self-start">
+      <StickyPreview footer={<CompactStatus verdicts={[{ tone: status.tone, text: status.title }]} />}>
         <SimCanvas scene={scene} params={params} view={{ zoom, compress, detail }} label={label}>
           <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-between p-2 text-[12px] font-semibold text-white">
             <span className="rounded bg-black/60 px-1.5 py-0.5 tabular-nums">{zoom.toFixed(1)}x</span>
@@ -108,14 +109,19 @@ export function LensLab() {
             </div>
           )}
         </SimCanvas>
-        <div className="mt-2">
+        <div className="mt-2 hidden md:block">
           <Callout tone={status.tone} title={status.title}>
             {status.text}
           </Callout>
         </div>
-      </div>
+      </StickyPreview>
 
       <div className="grid content-start gap-3">
+        <div className="md:hidden">
+          <Callout tone={status.tone} title={status.title}>
+            {status.text}
+          </Callout>
+        </div>
         <Segmented
           label="Lens"
           options={LENSES.map((l) => ({ value: l.id, label: l.button, sub: l.name }))}

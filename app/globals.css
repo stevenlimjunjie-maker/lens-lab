@@ -136,3 +136,13 @@ input[type="range"].lens-range[data-track="custom"]::-moz-range-track,
 input[type="range"].lens-range[data-track="custom"]::-moz-range-progress {
   background: transparent;
 }
+
+/* Keep focused controls clear of the sticky photo preview on phones. */
+@media (max-width: 767px) {
+  input[type="range"].lens-range,
+  [role="switch"],
+  fieldset,
+  button {
+    scroll-margin-top: calc(40svh + 70px);
+  }
+}
