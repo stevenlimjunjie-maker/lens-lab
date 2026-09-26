@@ -33,7 +33,7 @@ for (const cut of cuts) {
   const final = `../public/video/${cut.name}.mp4`;
   for (;;) {
     const audio = props.music ? "-c:a aac -b:a 128k" : "-an";
-    run(`ffmpeg -y -loglevel error -i ${raw} -c:v libx264 -preset slow -crf ${crf} -pix_fmt yuv420p -movflags +faststart ${audio} ${final}`);
+    run(`ffmpeg -y -loglevel error -i ${raw} -c:v libx264 -preset slow -crf ${crf} -vf scale=out_range=tv,format=yuv420p -color_range tv -movflags +faststart ${audio} ${final}`);
     const mb = statSync(final).size / 1024 / 1024;
     console.log(`${final}: ${mb.toFixed(2)} MB at CRF ${crf}`);
     if (mb < 15 || crf >= 34) break;
