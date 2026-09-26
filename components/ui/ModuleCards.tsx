@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { MotionConfig, motion } from "framer-motion";
 import { NAV } from "@/lib/site";
 
 const THUMBS: Record<string, string> = {
@@ -14,15 +14,16 @@ const THUMBS: Record<string, string> = {
 };
 
 export function ModuleCards() {
-  const reduce = useReducedMotion();
+  // MotionConfig handles prefers-reduced-motion without a server/client render difference.
   return (
+    <MotionConfig reducedMotion="user">
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {NAV.map((n, i) => (
         <motion.li
           key={n.href}
-          initial={reduce ? false : { opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: reduce ? 0 : 0.2 + i * 0.08 }}
+          transition={{ duration: 0.45, delay: 0.2 + i * 0.08 }}
         >
           <Link
             href={n.href}
@@ -46,5 +47,6 @@ export function ModuleCards() {
         </motion.li>
       ))}
     </ul>
+    </MotionConfig>
   );
 }

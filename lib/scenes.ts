@@ -345,7 +345,7 @@ const night: SceneDef = {
   id: "night",
   title: "Street at night",
   alt: "Drawn street at night with lamps, lit windows and a person walking",
-  light: { t0: 1 / 2, lightK: 3400, motion: 0.12 },
+  light: { t0: 1 / 2, lightK: 3400, motion: 0.09 },
   subject: {
     depth: 0.45,
     label: "person walking",
@@ -491,9 +491,8 @@ const portrait: SceneDef = {
     {
       name: "sky",
       depth: 1,
-      hot: 0.2,
       draw: (c) => {
-        rect(c, X0, Y0, X1 - X0, 0.9, vgrad(c, Y0, 0.4, [[0, "#a9c7e2"], [0.7, "#d5e3ec"], [1, "#e2e2d8"]]));
+        rect(c, X0, Y0, X1 - X0, 0.9, vgrad(c, Y0, 0.4, [[0, "#a3c2de"], [0.7, "#cbdbe6"], [1, "#d8d8cc"]]));
         cloud(c, 0.2, 0.05, 1, "#e9eef2");
         cloud(c, 0.9, 0.0, 1.3, "#e9eef2");
       },
@@ -772,9 +771,9 @@ const indoor: SceneDef = {
     {
       name: "lamp shade",
       depth: 0.68,
-      hot: 1.7,
+      hot: 1.3,
       draw: (c) => {
-        circle(c, 0.47, 0.17, 0.16, rgrad(c, 0.47, 0.17, 0.16, [[0, "rgba(255,226,170,0.9)"], [1, "rgba(255,210,150,0)"]]));
+        circle(c, 0.47, 0.17, 0.11, rgrad(c, 0.47, 0.17, 0.11, [[0, "rgba(255,226,170,0.9)"], [1, "rgba(255,210,150,0)"]]));
         poly(c, [0.42, 0.12, 0.52, 0.12, 0.55, 0.21, 0.39, 0.21], "#fff1d6");
       },
     },

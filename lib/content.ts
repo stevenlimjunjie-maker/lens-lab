@@ -318,16 +318,16 @@ export const PRESETS: Preset[] = [
     id: "food",
     name: "Food",
     scene: "food",
-    iso: 320,
+    iso: 250,
     shutter: 1 / 60,
-    ev: 0.3,
+    ev: 0,
     wbK: 3000,
     handheld: true,
     summary: "True colours under warm restaurant light.",
     why: [
       "Warm bulbs make everything orange. Setting about 3000K neutralises the cast.",
       "1/60s is safe handheld for a still plate.",
-      "A little +EV gives a bright, appetising look.",
+      "Expose so the plate stays just below pure white; a touch of +EV is fine if nothing clips.",
       "Shoot from above or at 45 degrees with window light when you can.",
     ],
     samsung: [
@@ -344,7 +344,7 @@ export const PRESETS: Preset[] = [
     cheat: {
       iso: "100 to 400",
       shutter: "1/60s or faster",
-      ev: "+0.3",
+      ev: "0 to +0.3",
       wb: "Match the light, 2800 to 3400K indoors",
       samsung: "Food mode or Pro mode with Kelvin WB",
       iphone: "Tap to focus, lift EV, fix Warmth in Photos",

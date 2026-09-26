@@ -1,12 +1,15 @@
 {
-  "name": "phone-lens-lab",
+  "name": "lens-lab",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "npx serve out",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "check:copy": "node scripts/check-copy.mjs",
+    "qa:screens": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "framer-motion": "^13.4.4",
