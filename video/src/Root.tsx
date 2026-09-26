@@ -2,7 +2,7 @@ import { Composition } from "remotion";
 import { Main, TOTAL, type MainProps } from "./Main";
 import { FPS } from "./theme";
 
-const defaults: MainProps = { url: "lens-lab.vercel.app" };
+const defaults: MainProps = { url: "lens-lab-six.vercel.app" };
 
 export const Root = () => (
   <>

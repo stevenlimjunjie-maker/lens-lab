@@ -14,7 +14,7 @@ cpSync("../public/samples", "public/samples", { recursive: true });
 mkdirSync("out", { recursive: true });
 mkdirSync("../public/video", { recursive: true });
 
-const props = { url: process.env.SITE_LABEL ?? "lens-lab.vercel.app" };
+const props = { url: process.env.SITE_LABEL ?? "lens-lab-six.vercel.app" };
 // Optional licensed music: put it at video/public/music.mp3. Silent otherwise.
 if (existsSync("public/music.mp3")) props.music = "music.mp3";
 // A props file avoids shell quoting differences between Windows and Unix.

@@ -3,6 +3,8 @@
 A mobile-first, interactive web app that teaches how the camera settings on Samsung Galaxy and iPhone phones work, so
 beginner and intermediate photographers can shoot closer to a professional.
 
+**Live site:** https://lens-lab-six.vercel.app
+
 - **Exposure triangle simulator**: ISO, shutter speed, EV and a conceptual aperture control on a live photo, with noise,
   motion blur, camera shake, clipping zebras, a live histogram and a plain-English verdict.
 - **Lens and zoom comparison**: ultra-wide, main and telephoto on the same scene, perspective compression, edge
@@ -81,7 +83,13 @@ vercel --prod        # production deploy
 vercel git connect   # auto deploy on every push to main
 ```
 
-`.vercelignore` keeps the `video/` workspace out of the upload, so Vercel never installs Remotion.
+The GitHub repository is connected to the Vercel project, so every push to `main` deploys to production.
+`.vercelignore` keeps the root `video/` workspace out of the upload, so Vercel never installs Remotion. The
+`build` script also runs `scripts/flatten-rsc.mjs`, which writes the flat prefetch file names the Next.js client
+requests from a static export.
+
+To change the site URL used in metadata and the video, set `NEXT_PUBLIC_SITE_URL` (site) and `SITE_LABEL`
+(video render).
 
 ## Accuracy notes
 
