@@ -55,7 +55,21 @@ function layerMagnification(zoom: number, compress: boolean, depth: number, subj
   return Math.min(zoom * 4, (zoom * d) / denom);
 }
 
+// Small cache so several simulators showing the same view share one render.
+const cache = new Map<string, RenderedScene>();
+const CACHE_SIZE = 8;
+
 export function renderScene(scene: SceneDef, opts: ViewOptions): RenderedScene {
+  const key = `${scene.id}|${opts.width}|${opts.zoom ?? 1}|${!!opts.compress}|${opts.detail ?? 1}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const out = drawScene(scene, opts);
+  cache.set(key, out);
+  if (cache.size > CACHE_SIZE) cache.delete(cache.keys().next().value!);
+  return out;
+}
+
+function drawScene(scene: SceneDef, opts: ViewOptions): RenderedScene {
   const zoom = opts.zoom ?? 1;
   const detail = Math.max(0.05, Math.min(1, opts.detail ?? 1));
   const W = Math.max(8, Math.round(opts.width * detail));

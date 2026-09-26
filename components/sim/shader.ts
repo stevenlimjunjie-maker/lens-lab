@@ -96,10 +96,17 @@ void main() {
   float rBg = uDof * abs(c0.a - uFocus);
   float rS = uDof * abs(uSubjDepth - uFocus);
 
+  // Adaptive sample count: sharp pixels need a single tap.
+  float blurPx = max(rBg, rS + abs(uMotion) * 0.5) + length(uShake);
+  blurPx /= uTexel.x;
+  int taps = int(clamp(ceil(blurPx * 1.2), 1.0, float(N)));
+  float fn = float(taps);
+
   vec3 bg = vec3(0.0);
   vec4 sa = vec4(0.0);
   for (int i = 0; i < N; i++) {
-    float t = (float(i) + 0.5) / float(N);
+    if (i >= taps) break;
+    float t = (float(i) + 0.5) / fn;
     float a = float(i) * 2.3999632;
     vec2 disc = vec2(cos(a), sin(a)) * sqrt(t);
     vec2 sh = uShake * (fract(t * 7.0 + 0.13) - 0.5);
@@ -110,8 +117,8 @@ void main() {
     bg += scene(uv + ob).rgb;
     sa += subj(uv + os);
   }
-  bg /= float(N);
-  sa /= float(N);
+  bg /= fn;
+  sa /= fn;
   vec3 x = bg * (1.0 - sa.a) + sa.rgb;
 
   // exposure and white balance

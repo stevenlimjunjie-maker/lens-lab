@@ -103,16 +103,10 @@ export function ViewfinderIntro() {
     <section aria-labelledby="intro-title" className="relative -mx-[14px] overflow-hidden bg-[#0d0d10] sm:mx-0 sm:mt-4 sm:rounded-xl">
       <div className="relative aspect-[4/5] w-full sm:aspect-[16/9]">
         {/* scene */}
-        <motion.picture
-          className="absolute inset-0"
-          initial={false}
-          animate={playing ? { scale: [1.15, 1.02, 1.08, 1.0], opacity: 1 } : { scale: 1, opacity: 0.8 }}
-          transition={playing ? { duration: 6.5, times: [0, 0.3, 0.6, 1], ease: "easeInOut" } : { duration: 0.8 }}
-        >
+        <picture className="absolute inset-0">
           <source srcSet="/samples/street-800.webp" media="(max-width: 640px)" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/samples/street-1280.webp" alt="" className="h-full w-full object-cover" fetchPriority="high" />
-        </motion.picture>
+        </picture>
 
         <div className="absolute inset-0 bg-linear-to-b from-black/80 via-black/35 to-black/10" aria-hidden="true" />
 

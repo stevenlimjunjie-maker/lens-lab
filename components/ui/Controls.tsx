@@ -34,7 +34,7 @@ export function StepSlider<T>({
   const tone =
     valueTone === "bad" ? "text-bad" : valueTone === "caution" ? "text-caution-ink" : valueTone === "good" ? "text-good" : "text-ink";
   return (
-    <div className={disabled ? "opacity-80" : ""}>
+    <div>
       <div className="flex items-baseline justify-between gap-3">
         <label htmlFor={id} className="text-[14px] font-medium text-ink-2">
           {label}

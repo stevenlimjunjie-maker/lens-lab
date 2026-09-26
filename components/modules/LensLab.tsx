@@ -167,7 +167,7 @@ export function LensLab() {
 
         <div className="rounded-lg border border-rule bg-white p-3">
           <div className="flex items-baseline justify-between gap-2">
-            <h3 className="text-lg font-bold">{lens.name}</h3>
+            <h2 className="text-lg font-bold">{lens.name}</h2>
             <span className="text-[13px] text-muted">{lens.focal}</span>
           </div>
           <div className="mt-2 grid grid-cols-[minmax(0,1fr)_110px] gap-3">

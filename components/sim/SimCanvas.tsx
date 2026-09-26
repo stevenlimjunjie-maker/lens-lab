@@ -54,6 +54,8 @@ type GLState = {
   uni: Record<string, WebGLUniformLocation | null>;
   fbo: WebGLFramebuffer;
   fboTex: WebGLTexture;
+  pbo: WebGLBuffer;
+  sync: WebGLSync | null;
 };
 
 const STATS_W = 128;
@@ -112,7 +114,11 @@ function initGL(canvas: HTMLCanvasElement): GLState | null {
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    return { gl, prog, tex, uni, fbo, fboTex };
+    const pbo = gl.createBuffer()!;
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
+    gl.bufferData(gl.PIXEL_PACK_BUFFER, STATS_W * STATS_H * 4, gl.STREAM_READ);
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+    return { gl, prog, tex, uni, fbo, fboTex, pbo, sync: null };
   } catch (e) {
     console.error(e);
     return null;
@@ -157,12 +163,37 @@ export function SimCanvas({ scene, params, view, onStats, label, className = "",
   const renderedRef = useRef<{ key: string; r: RenderedScene } | null>(null);
   const [pxWidth, setPxWidth] = useState(0);
   const [fallback, setFallback] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [glTick, setGlTick] = useState(0);
   const statsRef = useRef(onStats);
   const frame = useRef(0);
+  const statsFrame = useRef(0);
 
   useEffect(() => {
     statsRef.current = onStats;
   }, [onStats]);
+
+  // Only start the (relatively heavy) WebGL work once the canvas is near the viewport.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setVisible(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "100px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   // Track size.
   useEffect(() => {
@@ -185,7 +216,7 @@ export function SimCanvas({ scene, params, view, onStats, label, className = "",
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || pxWidth === 0) return;
+    if (!canvas || pxWidth === 0 || !visible) return;
     cancelAnimationFrame(frame.current);
     frame.current = requestAnimationFrame(() => {
       const def = SCENES[scene];
@@ -195,14 +226,22 @@ export function SimCanvas({ scene, params, view, onStats, label, className = "",
         canvas.width = w;
         canvas.height = h;
       }
+      const key = `${scene}|${w}|${zoom.toFixed(3)}|${compress}|${detail.toFixed(3)}`;
       if (!glRef.current && !fallback) {
+        // First run: draw the scene in this frame and set up WebGL in the next,
+        // so neither blocks the main thread for too long.
+        if (!renderedRef.current || renderedRef.current.key !== key) {
+          renderedRef.current = { key, r: renderScene(def, { width: w, zoom, compress, detail }) };
+          frame.current = requestAnimationFrame(() => setGlTick((t) => t + 1));
+          return;
+        }
         glRef.current = initGL(canvas);
         if (!glRef.current) {
           setFallback(true);
           return;
         }
+        upload(glRef.current, renderedRef.current.r);
       }
-      const key = `${scene}|${w}|${zoom.toFixed(3)}|${compress}|${detail.toFixed(3)}`;
       if (!renderedRef.current || renderedRef.current.key !== key) {
         const r = renderScene(def, { width: w, zoom, compress, detail });
         renderedRef.current = { key, r };
@@ -239,23 +278,46 @@ export function SimCanvas({ scene, params, view, onStats, label, className = "",
         gl.bindFramebuffer(gl.FRAMEBUFFER, st.fbo);
         gl.viewport(0, 0, STATS_W, STATS_H);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        const px = new Uint8Array(STATS_W * STATS_H * 4);
-        gl.readPixels(0, 0, STATS_W, STATS_H, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        // Read back asynchronously through a pixel buffer so the main thread
+        // does not stall waiting for the GPU.
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, st.pbo);
+        gl.readPixels(0, 0, STATS_W, STATS_H, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        statsRef.current(computeStats(px));
+        if (st.sync) gl.deleteSync(st.sync);
+        const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+        st.sync = sync;
+        gl.flush();
+        const poll = () => {
+          if (st.sync !== sync || !sync) return;
+          const status = gl.clientWaitSync(sync, 0, 0);
+          if (status === gl.TIMEOUT_EXPIRED) {
+            statsFrame.current = requestAnimationFrame(poll);
+            return;
+          }
+          gl.deleteSync(sync);
+          st.sync = null;
+          const px = new Uint8Array(STATS_W * STATS_H * 4);
+          gl.bindBuffer(gl.PIXEL_PACK_BUFFER, st.pbo);
+          gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, px);
+          gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+          statsRef.current?.(computeStats(px));
+        };
+        cancelAnimationFrame(statsFrame.current);
+        statsFrame.current = requestAnimationFrame(poll);
       }
       gl.uniform1f(uni.uZebra, params.zebra ? 1 : 0);
       gl.uniform1f(uni.uPeak, params.peaking ? 1 : 0);
       gl.viewport(0, 0, w, h);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     });
-  }, [scene, pxWidth, zoom, compress, detail, params, fallback]);
+  }, [scene, pxWidth, zoom, compress, detail, params, fallback, visible, glTick]);
 
   // Canvas 2D fallback when WebGL2 is unavailable: exposure and blur only.
   useEffect(() => {
     if (!fallback) return;
     const canvas = canvasRef.current;
-    if (!canvas || pxWidth === 0) return;
+    if (!canvas || pxWidth === 0 || !visible) return;
     const def = SCENES[scene];
     const w = pxWidth;
     const h = Math.round(w * ASPECT);
@@ -269,11 +331,15 @@ export function SimCanvas({ scene, params, view, onStats, label, className = "",
     ctx.drawImage(r.color, 0, 0, w, h);
     ctx.drawImage(r.subject, 0, 0, w, h);
     ctx.filter = "none";
-  }, [fallback, scene, pxWidth, zoom, compress, detail, params]);
+  }, [fallback, scene, pxWidth, zoom, compress, detail, params, visible]);
 
   useEffect(() => {
     const f = frame;
-    return () => cancelAnimationFrame(f.current);
+    const sf = statsFrame;
+    return () => {
+      cancelAnimationFrame(f.current);
+      cancelAnimationFrame(sf.current);
+    };
   }, []);
 
   return (
